@@ -9,28 +9,35 @@ export default async function AccountPage() {
   const orders = withDb((db) => ordersForUser(db, session.userId))
   return (
     <div>
-      <h1>Mis compras</h1>
-      <p className="muted">
-        {session.email} {session.isVip ? "· cliente VIP" : ""}
-      </p>
+      <p className="kicker">{session.isVip ? "Cliente VIP" : "Cuenta"}</p>
+      <h1 className="page-title">Mis compras</h1>
+      <p className="muted">{session.email}</p>
       {orders.length === 0 ? (
         <p className="muted">
-          Aún no hay pedidos. <Link href="/">Ir al catálogo</Link>
+          Aún no hay pedidos. <Link href="/">Ir al mostrador</Link>
         </p>
       ) : (
-        orders.map((order) => (
-          <article key={order.id} className="card">
-            <h3>{order.id}</h3>
-            <p className="muted">
-              {order.status} · ${order.total} · {order.paymentRef}
-            </p>
-            {order.lines.map((line) => (
-              <p key={line.sku}>
-                {line.quantity} × {line.name}
+        <div className="grid">
+          {orders.map((order) => (
+            <article key={order.id} className="card" style={{ padding: 16 }}>
+              <h3>{order.id}</h3>
+              <p className="muted">
+                {order.status} · ${order.total}
+                {order.paymentMethod ? ` · ${order.paymentMethod}` : ""}
               </p>
-            ))}
-          </article>
-        ))
+              {order.ownerFee && (
+                <p className="muted">
+                  Procesador ${order.processorFee} · Dueño ${order.ownerFee} · Neto ${order.merchantNet}
+                </p>
+              )}
+              {order.lines.map((line) => (
+                <p key={line.sku}>
+                  {line.quantity} × {line.name}
+                </p>
+              ))}
+            </article>
+          ))}
+        </div>
       )}
     </div>
   )

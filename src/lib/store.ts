@@ -16,20 +16,33 @@ export type ShopOrder = {
   id: string
   userId: string
   createdAt: string
-  status: "paid" | "failed"
+  status: "paid" | "failed" | "awaiting_payment"
   total: string
   paymentRef: string
+  paymentMethod?: string
+  processorFee?: string
+  ownerFee?: string
+  merchantNet?: string
   lines: { sku: string; name: string; quantity: number; unitPrice: string }[]
+}
+
+export type OwnerLedgerEntry = {
+  id: string
+  createdAt: string
+  orderId: string
+  amount: string
+  note: string
 }
 
 type Db = {
   users: ShopUser[]
   carts: Record<string, Cart>
   orders: ShopOrder[]
+  ownerWallet: { balance: string; entries: OwnerLedgerEntry[] }
 }
 
 function defaultDb(): Db {
-  return { users: [], carts: {}, orders: [] }
+  return { users: [], carts: {}, orders: [], ownerWallet: { balance: "0.00", entries: [] } }
 }
 
 export function loadDb(path: string): Db {
@@ -40,6 +53,13 @@ export function loadDb(path: string): Db {
       users: Array.isArray(parsed.users) ? parsed.users : [],
       carts: parsed.carts && typeof parsed.carts === "object" ? parsed.carts : {},
       orders: Array.isArray(parsed.orders) ? parsed.orders : [],
+      ownerWallet:
+        parsed.ownerWallet && typeof parsed.ownerWallet === "object"
+          ? {
+              balance: parsed.ownerWallet.balance ?? "0.00",
+              entries: Array.isArray(parsed.ownerWallet.entries) ? parsed.ownerWallet.entries : [],
+            }
+          : { balance: "0.00", entries: [] },
     }
   } catch {
     return defaultDb()
@@ -95,4 +115,18 @@ export function addOrder(db: Db, order: Omit<ShopOrder, "id" | "createdAt">): Sh
 
 export function ordersForUser(db: Db, userId: string): ShopOrder[] {
   return db.orders.filter((o) => o.userId === userId)
+}
+
+export function creditOwnerWallet(db: Db, input: { orderId: string; amount: string; note: string }): void {
+  const add = Math.round(Number(input.amount) * 100)
+  if (!Number.isFinite(add) || add <= 0) return
+  const current = Math.round(Number(db.ownerWallet.balance) * 100) || 0
+  db.ownerWallet.balance = ((current + add) / 100).toFixed(2)
+  db.ownerWallet.entries.unshift({
+    id: `OWN-${randomUUID().slice(0, 8).toUpperCase()}`,
+    createdAt: new Date().toISOString(),
+    orderId: input.orderId,
+    amount: input.amount,
+    note: input.note,
+  })
 }

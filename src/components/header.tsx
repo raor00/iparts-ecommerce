@@ -1,33 +1,54 @@
 import Link from "next/link"
-import { readSession } from "@/lib/http"
+import { cartSubtotal } from "@/lib/cart"
+import { readSession, withDb } from "@/lib/http"
+import { getCart } from "@/lib/store"
 
 export async function Header() {
   const session = await readSession()
+  const cart = session ? withDb((db) => getCart(db, session.userId)) : { lines: [] }
+  const count = cart.lines.reduce((sum, line) => sum + line.quantity, 0)
+  const total = cartSubtotal(cart)
   return (
-    <header className="top">
-      <div className="top-inner">
+    <header className="mast">
+      <div className="wrap mast-row">
         <Link className="brand" href="/">
-          IPARTS Shop
+          <span className="brand-mark">
+            i<span>PARTS</span>
+          </span>
+          <span className="brand-sub">Shop</span>
         </Link>
-        <nav className="nav">
-          <Link href="/">Catálogo</Link>
-          <Link href="/cart">Carrito</Link>
+        <form className="search" action="/search" method="get">
+          <input name="q" type="search" placeholder="Buscar pantalla, batería, modelo…" aria-label="Buscar repuestos" />
+          <button type="submit">Buscar</button>
+        </form>
+        <div className="mast-actions">
           {session ? (
             <>
-              <Link href="/account">{session.isVip ? "VIP" : "Mi cuenta"}</Link>
+              <Link className="mast-link" href="/account">
+                <span>{session.isVip ? "Cuenta VIP" : "Mi cuenta"}</span>
+                <strong>{session.email.split("@")[0]}</strong>
+              </Link>
+              <Link className="mast-link" href="/owner">
+                <span>Pasarela</span>
+                <strong>Wallet dueño</strong>
+              </Link>
               <form action="/api/auth/logout" method="post">
-                <button className="btn secondary" type="submit">
+                <button className="btn ghost" type="submit">
                   Salir
                 </button>
               </form>
             </>
           ) : (
-            <>
-              <Link href="/login">Entrar</Link>
-              <Link href="/register">Crear cuenta</Link>
-            </>
+            <Link className="mast-link" href="/login">
+              <span>Identifícate</span>
+              <strong>Entrar / crear cuenta</strong>
+            </Link>
           )}
-        </nav>
+          <Link className="cart-pill" href="/cart">
+            <span>Carrito {count > 0 ? `(${count})` : ""}</span>
+            <strong className="amt">${total}</strong>
+          </Link>
+        </div>
       </div>
     </header>
   )

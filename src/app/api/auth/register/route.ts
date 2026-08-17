@@ -3,6 +3,7 @@ import { json, withDb } from "@/lib/http"
 import { hashPassword } from "@/lib/password"
 import { createUser, findUserByEmail } from "@/lib/store"
 import { encodeSession, sessionCookie } from "@/lib/session"
+import { isVipEmail } from "@/lib/vip-account"
 
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { email?: string; name?: string; password?: string }
@@ -16,7 +17,12 @@ export async function POST(req: Request) {
     const cfg = shopConfig()
     const user = withDb((db) => {
       if (findUserByEmail(db, email)) throw new Error("Ese correo ya está registrado")
-      return createUser(db, { email, name, passwordHash: hashPassword(password) })
+      return createUser(db, {
+        email,
+        name,
+        passwordHash: hashPassword(password),
+        isVip: isVipEmail(email),
+      })
     })
     const token = encodeSession({ userId: user.id, email: user.email, isVip: user.isVip }, cfg.sessionSecret)
     return json(

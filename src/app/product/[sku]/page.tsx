@@ -1,10 +1,13 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { shopConfig } from "@/lib/config"
-import { availabilityLabel, fetchErpCatalog } from "@/lib/erp-stock"
+import { modelSlug } from "@/lib/catalog"
+import { availabilityLabel } from "@/lib/erp-stock"
 import { readSession } from "@/lib/http"
+import { loadShopCatalog } from "@/lib/load-catalog"
+import { previewCatalog } from "@/lib/preview-catalog"
 import { selectOfferPrice } from "@/lib/vip-price"
 import { AddToCart } from "@/components/add-to-cart"
+import { ProductPhoto } from "@/components/product-photo"
 
 export default async function ProductPage({
   params,
@@ -16,37 +19,56 @@ export default async function ProductPage({
   const { sku } = await params
   const { model } = await searchParams
   const session = await readSession()
-  const cfg = shopConfig()
   const decoded = decodeURIComponent(sku)
-  let items: Awaited<ReturnType<typeof fetchErpCatalog>> = []
-  try {
-    items = await fetchErpCatalog({ erpBaseUrl: cfg.erpBaseUrl, apiKey: cfg.ecommerceApiKey, model })
-  } catch {
-    items = []
-  }
-  const item = items.find((row) => row.sku === decoded)
+  const loaded = await loadShopCatalog(model ? { model } : {})
+  const item =
+    loaded.items.find((row) => row.sku === decoded) ??
+    previewCatalog().find((row) => row.sku === decoded)
   if (!item) notFound()
   const price = selectOfferPrice({ salePrice: item.salePrice, isVip: Boolean(session?.isVip) })
   return (
     <div>
-      <p className="muted">
-        <Link href="/">Catálogo</Link>
+      <p className="crumb">
+        <Link href="/">Inicio</Link>
+        {item.models[0] ? (
+          <>
+            {" / "}
+            <Link href={`/catalog/${modelSlug(item.models[0]!)}`}>{item.models[0]}</Link>
+          </>
+        ) : null}
+        {" / "}
+        {item.category}
       </p>
-      <article className="card">
-        <h1>{item.fullName}</h1>
-        <p className="muted">{item.category} · {item.models.join(", ")}</p>
-        <p>SKU {item.sku}</p>
-        <p>${price.unitPrice} {price.compareAt ? <s className="muted">${price.compareAt}</s> : null}</p>
-        <p className="muted">{availabilityLabel(item)}</p>
-        {session ? (
-          <AddToCart sku={item.sku} name={item.fullName} unitPrice={price.unitPrice} disabled={!item.inStock} />
-        ) : (
-          <p>
-            <Link className="btn" href={`/login?next=/product/${encodeURIComponent(item.sku)}`}>
-              Inicia sesión para comprar
-            </Link>
+      <article className="pdp">
+        <div className="pdp-photo">
+          <ProductPhoto category={item.category} brand={item.brand} alt={item.fullName} />
+        </div>
+        <div>
+          <p className="kicker">{item.category}</p>
+          <h1>{item.fullName}</h1>
+          <p className="sku">
+            SKU {item.sku}
+            {item.quality ? ` · Calidad ${item.quality}` : ""}
+            {item.brand ? ` · Marca ${item.brand}` : ""}
+            {item.color ? ` · ${item.color}` : ""}
           </p>
-        )}
+          <div className="price-row" style={{ margin: "16px 0" }}>
+            <span className="price">${price.unitPrice}</span>
+            {price.compareAt ? <span className="was">${price.compareAt}</span> : null}
+          </div>
+          <p className={item.inStock ? "stock" : "stock out"}>{availabilityLabel(item)}</p>
+          <p className="muted" style={{ margin: "12px 0 20px" }}>
+            Compatible: {item.models.join(", ") || "—"}
+            {session?.isVip ? " · Estás viendo precio VIP." : " · Precio de mostrador."}
+          </p>
+          {session ? (
+            <AddToCart sku={item.sku} name={item.fullName} unitPrice={price.unitPrice} disabled={!item.inStock} />
+          ) : (
+            <Link className="btn" href={`/login?next=/product/${encodeURIComponent(item.sku)}`}>
+              Entra para agregar al carrito
+            </Link>
+          )}
+        </div>
       </article>
     </div>
   )

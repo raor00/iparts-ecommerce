@@ -18,7 +18,7 @@ export function AddToCart(props: { sku: string; name: string; unitPrice: string;
           const res = await fetch("/api/cart", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify(props),
+            body: JSON.stringify({ sku: props.sku, quantity: 1 }),
           })
           setBusy(false)
           if (res.status === 401) {

@@ -11,17 +11,27 @@ export default async function CheckoutPage() {
   if (cart.lines.length === 0) redirect("/cart")
   return (
     <div>
-      <h1>Checkout</h1>
-      <p className="muted">Sesión detectada: {session.email}{session.isVip ? " · VIP" : ""}</p>
-      <div className="card">
-        {cart.lines.map((line) => (
-          <p key={line.sku}>
-            {line.quantity} × {line.name} · ${line.unitPrice}
-          </p>
-        ))}
-        <p>Total ${cartSubtotal(cart)}</p>
-      </div>
-      <CheckoutForm />
+      <h1 className="page-title">Pagar pedido</h1>
+      <p className="muted">
+        {session.email}
+        {session.isVip ? " · VIP" : " · mostrador"}
+      </p>
+      <table className="cart-table">
+        <tbody>
+          {cart.lines.map((line) => (
+            <tr key={line.sku}>
+              <td>
+                {line.quantity} × {line.name}
+              </td>
+              <td>${line.unitPrice}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p style={{ margin: "16px 0" }}>
+        Total <strong className="price">${cartSubtotal(cart)}</strong>
+      </p>
+      <CheckoutForm amount={cartSubtotal(cart)} />
     </div>
   )
 }

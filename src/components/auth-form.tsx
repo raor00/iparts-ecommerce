@@ -13,6 +13,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
   const router = useRouter()
   return (
     <form
+      className="stack"
       onSubmit={async (e) => {
         e.preventDefault()
         setBusy(true)
@@ -35,18 +36,25 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next: str
       {mode === "register" && (
         <label>
           Nombre
-          <input value={name} onChange={(e) => setName(e.target.value)} />
+          <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
         </label>
       )}
       <label>
         Correo
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" />
       </label>
       <label>
         Contraseña
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
+        />
       </label>
-      {error && <p>{error}</p>}
+      {error && <p className="err">{error}</p>}
       <button className="btn" disabled={busy} type="submit">
         {mode === "login" ? "Entrar" : "Crear cuenta"}
       </button>

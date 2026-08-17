@@ -1,18 +1,18 @@
-import { shopConfig } from "@/lib/config"
-import { fetchErpCatalog } from "@/lib/erp-stock"
 import { json } from "@/lib/http"
+import { loadShopCatalog } from "@/lib/load-catalog"
 
 export async function GET(req: Request) {
-  const model = new URL(req.url).searchParams.get("model") ?? undefined
-  const cfg = shopConfig()
-  try {
-    const items = await fetchErpCatalog({
-      erpBaseUrl: cfg.erpBaseUrl,
-      apiKey: cfg.ecommerceApiKey,
-      model,
-    })
-    return json({ items })
-  } catch (err) {
-    return json({ error: err instanceof Error ? err.message : "ERP no disponible", items: [] }, 502)
-  }
+  const url = new URL(req.url)
+  const loaded = await loadShopCatalog({
+    ...(url.searchParams.get("model") ? { model: url.searchParams.get("model")! } : {}),
+    ...(url.searchParams.get("category") ? { category: url.searchParams.get("category")! } : {}),
+    ...(url.searchParams.get("brand") ? { brand: url.searchParams.get("brand")! } : {}),
+    ...(url.searchParams.get("quality") ? { quality: url.searchParams.get("quality")! } : {}),
+  })
+  return json({
+    items: loaded.items,
+    source: loaded.source,
+    error: loaded.error,
+    taxonomy: loaded.taxonomy,
+  })
 }

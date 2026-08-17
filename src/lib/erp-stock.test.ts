@@ -29,5 +29,7 @@ describe("ERP stock adapter", () => {
     })
     expect(items).toEqual(mapErpPayload(payload))
     expect(items[0]!.salePrice).toBe("9.50")
+    expect(items[0]!.brand).toBeNull()
+    expect(items[0]!.categorySlug.length).toBeGreaterThan(0)
   })
 })

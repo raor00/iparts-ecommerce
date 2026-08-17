@@ -42,6 +42,17 @@ export const PART_CATEGORIES = [
   { slug: "altavoces", name: "Altavoces" },
   { slug: "sensores", name: "Sensores" },
   { slug: "botones", name: "Botones" },
+  { slug: "original-usada", name: "Original usada" },
+] as const
+
+export const ORIGINAL_USADA_MODELS = ["iPhone 11", "iPhone 11 Pro", "iPhone 11 Pro Max"] as const
+
+export const ORIGINAL_USADA_PARTS = [
+  { slug: "pantallas", name: "Pantalla", price: "92.00" },
+  { slug: "baterias", name: "Batería", price: "16.00" },
+  { slug: "tapas", name: "Tapa / Housing", price: "48.00" },
+  { slug: "camaras", name: "Cámara", price: "32.00" },
+  { slug: "flex-carga", name: "Flex de carga", price: "12.00" },
 ] as const
 
 export function isShopIphoneModel(value: string): value is ShopIphoneModel {
