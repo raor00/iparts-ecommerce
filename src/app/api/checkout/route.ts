@@ -1,7 +1,10 @@
 import { assertCanCheckout, isCheckoutAuthError } from "@/lib/checkout-auth"
 import { cartSubtotal, emptyCart } from "@/lib/cart"
+import { shopConfig } from "@/lib/config"
+import { fetchErpCatalog } from "@/lib/erp-stock"
 import { json, readSession, withDb } from "@/lib/http"
 import { processPayment } from "@/lib/payment"
+import { repriceCart } from "@/lib/reprice"
 import { addOrder, getCart, putCart } from "@/lib/store"
 
 export async function POST(req: Request) {
@@ -13,7 +16,14 @@ export async function POST(req: Request) {
     throw err
   }
   const body = (await req.json().catch(() => ({}))) as { token?: string }
-  const cart = withDb((db) => getCart(db, session!.userId))
+  const cfg = shopConfig()
+  let catalog
+  try {
+    catalog = await fetchErpCatalog({ erpBaseUrl: cfg.erpBaseUrl, apiKey: cfg.ecommerceApiKey })
+  } catch (err) {
+    return json({ error: err instanceof Error ? err.message : "ERP no disponible" }, 502)
+  }
+  const cart = withDb((db) => repriceCart(getCart(db, session!.userId), catalog, session!.isVip))
   if (cart.lines.length === 0) return json({ error: "El carrito está vacío" }, 400)
   const total = cartSubtotal(cart)
   const pay = processPayment({ amount: total, token: body.token ?? "" })
