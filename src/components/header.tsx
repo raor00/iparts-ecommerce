@@ -13,10 +13,14 @@ export async function Header() {
     <header className="mast">
       <div className="wrap mast-row">
         <Link className="brand" href="/">
-          <span className="brand-mark">
-            i<span>PARTS</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="brand-logo" src="/brand/iparts-logo.png" alt="iParts" />
+          <span className="brand-copy">
+            <span className="brand-mark">
+              i<span>PARTS</span>
+            </span>
+            <span className="brand-sub">Ecommerce</span>
           </span>
-          <span className="brand-sub">Shop</span>
         </Link>
         <form className="search" action="/search" method="get">
           <input name="q" type="search" placeholder="Buscar pantalla, batería, modelo…" aria-label="Buscar repuestos" />
@@ -48,10 +52,14 @@ export async function Header() {
               </form>
             </>
           ) : (
-            <Link className="mast-link" href="/login">
-              <span>Identifícate</span>
-              <strong>Entrar / crear cuenta</strong>
-            </Link>
+            <div className="auth-ctas">
+              <Link className="btn ghost" href="/login">
+                Iniciar sesión
+              </Link>
+              <Link className="btn" href="/register">
+                Crear cuenta
+              </Link>
+            </div>
           )}
           <Link className="cart-pill" href="/cart">
             <span>Carrito {count > 0 ? `(${count})` : ""}</span>

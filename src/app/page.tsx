@@ -7,15 +7,23 @@ export default function HomePage() {
     <div>
       <section className="hero">
         <div className="hero-copy">
-          <p className="kicker">Almacén IPARTS · mayorista</p>
-          <h1>Repuestos iPhone, del mostrador al pedido.</h1>
+          <p className="kicker">iParts Ecommerce</p>
+          <h1>Repuestos iPhone, del catálogo al pedido.</h1>
           <p>
-            Pantallas, baterías, tapas y flex desde iPhone XR hasta 17 Pro Max. Precio de
-            mostrador o VIP. El stock lo lee el ERP, no un catálogo inventado.
+            Creá tu cuenta de cliente, guardá tus datos de envío y comprá pantallas, baterías, tapas y flex
+            desde iPhone XR hasta 17 Pro Max.
           </p>
-          <Link className="btn" href="/catalog/16-pro-max">
-            Ver iPhone 16 Pro Max
-          </Link>
+          <div className="auth-ctas">
+            <Link className="btn" href="/register">
+              Crear cuenta
+            </Link>
+            <Link className="btn ghost" href="/login">
+              Iniciar sesión
+            </Link>
+            <Link className="btn ghost" href="/catalog/16-pro-max">
+              Ver catálogo
+            </Link>
+          </div>
         </div>
         <div className="hero-photo">
           {/* eslint-disable-next-line @next/next/no-img-element */}

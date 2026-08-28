@@ -46,9 +46,25 @@ img { max-width: 100%; display: block; }
 }
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
+}
+.brand-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.1;
+}
+.auth-ctas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .brand-mark {
   font-weight: 700;

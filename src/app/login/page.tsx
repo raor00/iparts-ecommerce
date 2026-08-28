@@ -4,9 +4,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { next } = await searchParams
   return (
     <div className="auth-shell">
-      <p className="kicker">Cuenta IPARTS</p>
-      <h1>Entrar al mostrador</h1>
-      <p className="muted">Misma cuenta para carrito, VIP y pedidos. La contraseña no se guarda en el navegador.</p>
+      <p className="kicker">iParts Ecommerce</p>
+      <h1>Iniciar sesión</h1>
+      <p className="muted">Entrá con tu cuenta de cliente. La contraseña no se guarda en el navegador.</p>
       <AuthForm mode="login" next={next ?? "/account"} />
     </div>
   )

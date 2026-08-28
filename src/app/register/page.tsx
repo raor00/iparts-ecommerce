@@ -4,8 +4,8 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   const { next } = await searchParams
   return (
     <div className="auth-shell">
-      <p className="kicker">Nueva cuenta</p>
-      <h1>Crear usuario</h1>
+      <p className="kicker">iParts Ecommerce</p>
+      <h1>Crear cuenta de cliente</h1>
       <p className="muted">
         Todos los campos de identidad y envío son obligatorios. Sin eso no se puede pagar. Contraseña mínimo 8
         caracteres.

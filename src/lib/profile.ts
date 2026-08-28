@@ -27,7 +27,7 @@ export const PROFILE_FIELDS = [
 
 export function emptyProfile(): CustomerProfile {
   return {
-    country: "",
+    country: "VE",
     firstName: "",
     lastName: "",
     nationalId: "",

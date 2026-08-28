@@ -15,8 +15,9 @@ const generalSans = localFont({
 })
 
 export const metadata: Metadata = {
-  title: "IPARTS — Repuestos iPhone",
-  description: "Mostrador de pantallas, baterías y flex iPhone XR a 17 Pro Max. Stock del almacén IPARTS.",
+  title: "iParts Ecommerce — Repuestos iPhone",
+  description: "Tienda online iParts: catálogo, cuenta de cliente y pedidos de pantallas, baterías y flex iPhone.",
+  icons: { icon: "/brand/iparts-logo.png" },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
