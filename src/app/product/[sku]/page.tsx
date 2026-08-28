@@ -4,10 +4,12 @@ import { modelSlug } from "@/lib/catalog"
 import { availabilityLabel } from "@/lib/erp-stock"
 import { readSession } from "@/lib/http"
 import { loadShopCatalog } from "@/lib/load-catalog"
-import { previewCatalog } from "@/lib/preview-catalog"
+import { isPreviewSku, previewCatalog } from "@/lib/preview-catalog"
 import { selectOfferPrice } from "@/lib/vip-price"
-import { AddToCart } from "@/components/add-to-cart"
+import { ProductBuyBox } from "@/components/product-buy-box"
 import { ProductPhoto } from "@/components/product-photo"
+import { partImageHint } from "@/lib/part-visual"
+import { productCopy } from "@/lib/product-copy"
 
 export default async function ProductPage({
   params,
@@ -26,32 +28,41 @@ export default async function ProductPage({
     previewCatalog().find((row) => row.sku === decoded)
   if (!item) notFound()
   const price = selectOfferPrice({ salePrice: item.salePrice, isVip: Boolean(session?.isVip) })
+  const copy = productCopy(item)
   return (
     <div>
       <p className="crumb">
         <Link href="/">Inicio</Link>
-        {item.models[0] ? (
+        {copy.model ? (
           <>
             {" / "}
-            <Link href={`/catalog/${modelSlug(item.models[0]!)}`}>{item.models[0]}</Link>
+            <Link href={`/catalog/${modelSlug(copy.model)}`}>{copy.model}</Link>
           </>
         ) : null}
         {" / "}
-        {item.category}
+        {copy.kind}
       </p>
       <article className="pdp">
         <div className="pdp-photo">
-          <ProductPhoto category={item.category} brand={item.brand} alt={item.fullName} />
+          <ProductPhoto
+            category={partImageHint(item)}
+            brand={item.brand}
+            modelShort={copy.modelShort}
+            quality={copy.technology ?? copy.origin}
+            alt={copy.title}
+          />
         </div>
         <div>
-          <p className="kicker">{item.category}</p>
-          <h1>{item.fullName}</h1>
-          <p className="sku">
-            SKU {item.sku}
-            {item.quality ? ` · Calidad ${item.quality}` : ""}
-            {item.brand ? ` · Marca ${item.brand}` : ""}
-            {item.color ? ` · ${item.color}` : ""}
-          </p>
+          <p className="kicker">{copy.kind}</p>
+          <h1>{copy.title}</h1>
+          {copy.chips.length > 0 ? (
+            <p className="id-line" style={{ margin: "8px 0 0" }}>
+              {copy.chips.map((chip) => (
+                <span key={chip}>{chip}</span>
+              ))}
+            </p>
+          ) : null}
+          {!isPreviewSku(item.sku) ? <p className="sku">Código {item.sku}</p> : null}
           <div className="price-row" style={{ margin: "16px 0" }}>
             <span className="price">${price.unitPrice}</span>
             {price.compareAt ? <span className="was">${price.compareAt}</span> : null}
@@ -61,13 +72,7 @@ export default async function ProductPage({
             Compatible: {item.models.join(", ") || "—"}
             {session?.isVip ? " · Estás viendo precio VIP." : " · Precio de mostrador."}
           </p>
-          {session ? (
-            <AddToCart sku={item.sku} name={item.fullName} unitPrice={price.unitPrice} disabled={!item.inStock} />
-          ) : (
-            <Link className="btn" href={`/login?next=/product/${encodeURIComponent(item.sku)}`}>
-              Entra para agregar al carrito
-            </Link>
-          )}
+          <ProductBuyBox sku={item.sku} maxQty={99} disabled={!item.inStock} />
         </div>
       </article>
     </div>

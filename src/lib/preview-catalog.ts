@@ -19,6 +19,30 @@ const PREVIEW_WHOLESALE: Record<(typeof PART_CATEGORIES)[number]["slug"], string
   "original-usada": "92.00",
 }
 
+/** Wholesale by category + quality + brand so OLED / Incell / Soft OLED are not the same price. */
+const PREVIEW_OFFER: Record<string, string> = {
+  "pantallas|oled|jk": "185.00",
+  "pantallas|soft oled|zy": "142.00",
+  "pantallas|incell|gx": "78.00",
+  "baterias|con flex|amp": "28.00",
+  "baterias|sin flex|gx": "18.00",
+  "tapas|original|oem": "96.00",
+  "tapas|compatible|jk": "62.00",
+  "camaras|original|oem": "64.00",
+  "camaras|compatible|gx": "36.00",
+  "flex-carga|original|oem": "22.00",
+  "flex-carga|compatible|jk": "12.00",
+}
+
+export function previewWholesalePrice(input: {
+  categorySlug: string
+  quality: string
+  brand: string
+}): string {
+  const key = `${input.categorySlug}|${input.quality}|${input.brand}`.toLowerCase()
+  return PREVIEW_OFFER[key] ?? PREVIEW_WHOLESALE[input.categorySlug as keyof typeof PREVIEW_WHOLESALE] ?? "0.00"
+}
+
 const PREVIEW_VARIANTS: Record<(typeof PART_CATEGORIES)[number]["slug"], { quality: string; brand: string }[]> = {
   pantallas: [
     { quality: "OLED", brand: "JK" },
@@ -31,7 +55,7 @@ const PREVIEW_VARIANTS: Record<(typeof PART_CATEGORIES)[number]["slug"], { quali
   ],
   tapas: [
     { quality: "Original", brand: "OEM" },
-    { quality: "Aftermarket", brand: "JK" },
+    { quality: "Compatible", brand: "JK" },
   ],
   camaras: [
     { quality: "Original", brand: "OEM" },
@@ -67,7 +91,11 @@ export function previewCatalog(model?: string): ErpCatalogItem[] {
           color: null,
           models: [phone],
           quantity: cat.slug === "sensores" ? 0 : 6,
-          salePrice: PREVIEW_WHOLESALE[cat.slug],
+          salePrice: previewWholesalePrice({
+            categorySlug: cat.slug,
+            quality: variant.quality,
+            brand: variant.brand,
+          }),
           inStock: cat.slug !== "sensores",
         })
       }

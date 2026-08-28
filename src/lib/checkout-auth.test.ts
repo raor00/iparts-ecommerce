@@ -9,7 +9,7 @@ describe("assertCanCheckout", () => {
     } catch (err) {
       expect(isCheckoutAuthError(err)).toBe(true)
     }
-    const session = assertCanCheckout({ userId: "u1", email: "a@b.com", isVip: false })
+    const session = assertCanCheckout({ userId: "u1", email: "a@b.com", isVip: false, role: "CUSTOMER" })
     expect(session.userId).toBe("u1")
   })
 })

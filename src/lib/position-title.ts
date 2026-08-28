@@ -15,9 +15,12 @@ export function positionCrumbs(pos: CatalogPosition): { label: string; key: stri
 }
 
 export function positionHeading(pos: CatalogPosition): string {
-  const bits = [pos.category]
-  if (pos.quality) bits.push(pos.quality)
-  if (pos.brand) bits.push(pos.brand)
+  const category = pos.category.trim()
+  const quality = pos.quality?.trim()
+  const brand = pos.brand?.trim()
+  const bits = [category]
+  if (quality && quality.toLowerCase() !== category.toLowerCase()) bits.push(quality)
+  if (brand && brand.toLowerCase() !== category.toLowerCase()) bits.push(brand)
   if (pos.model) return `${bits.join(" ")} para ${pos.model}`
   return `${bits.join(" ")} para iPhone`
 }

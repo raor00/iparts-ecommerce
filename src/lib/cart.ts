@@ -38,3 +38,26 @@ export function cartSubtotal(cart: Cart): string {
   const cents = cart.lines.reduce((sum, line) => sum + Math.round(Number(line.unitPrice) * 100) * line.quantity, 0)
   return (cents / 100).toFixed(2)
 }
+
+export function cartCount(cart: Cart): number {
+  return cart.lines.reduce((sum, line) => sum + line.quantity, 0)
+}
+
+export function lineTotal(line: Pick<CartLine, "unitPrice" | "quantity">): string {
+  return ((Math.round(Number(line.unitPrice) * 100) * line.quantity) / 100).toFixed(2)
+}
+
+export function clampQty(qty: number, max: number): number {
+  if (!Number.isFinite(max) || max <= 0) return 0
+  const next = Math.floor(qty)
+  if (!Number.isFinite(next) || next < 1) return 1
+  return Math.min(next, Math.floor(max))
+}
+
+export function mergeCarts(base: Cart, incoming: Cart): Cart {
+  let next = base
+  for (const line of incoming.lines) {
+    next = addCartLine(next, line)
+  }
+  return next
+}

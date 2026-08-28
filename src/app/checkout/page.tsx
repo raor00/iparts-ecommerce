@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation"
 import { cartSubtotal } from "@/lib/cart"
 import { readSession, withDb } from "@/lib/http"
-import { getCart } from "@/lib/store"
+import { isProfileComplete } from "@/lib/profile"
+import { findUserById, getCart } from "@/lib/store"
 import { CheckoutForm } from "@/components/checkout-form"
 
 export default async function CheckoutPage() {
   const session = await readSession()
   if (!session) redirect("/login?next=/checkout")
+  const user = withDb((db) => findUserById(db, session.userId))
+  if (!isProfileComplete(user?.profile)) redirect("/register?next=/checkout")
   const cart = withDb((db) => getCart(db, session.userId))
   if (cart.lines.length === 0) redirect("/cart")
   return (

@@ -2,7 +2,9 @@
 
 Tienda online de **repuestos iPhone** (XR → 17 Pro Max). El stock y el precio mayorista salen en vivo del ERP IPARTS.
 
-**Stack:** Next.js App Router + TypeScript (framework de compras web). No es Go.
+**Stack:** Next.js App Router + TypeScript. Shop independiente del ERP de taller.
+
+Registro KYC obligatorio (país, cédula, dirección). El catálogo público no muestra cantidad de almacén: solo En stock / Sin stock. Si pedís más de lo disponible, el carrito responde `QTY_CAP`. Pedido cobrado entra a `/dispatch` y descuenta stock. `/owner` y despacho son roles de staff, no del cliente.
 
 ## Endpoints
 

@@ -9,7 +9,7 @@ describe("ERP stock adapter", () => {
     ])
     expect(mapped[0]!.inStock).toBe(true)
     expect(mapped[0]!.quantity).toBe(4)
-    expect(availabilityLabel(mapped[0]!)).toBe("4 en stock")
+    expect(availabilityLabel(mapped[0]!)).toBe("En stock")
     expect(mapped[1]!.inStock).toBe(false)
     expect(availabilityLabel(mapped[1]!)).toBe("Sin stock")
   })

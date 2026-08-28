@@ -16,5 +16,8 @@ describe("positionHeading", () => {
       "Pantallas",
       "OLED",
     ])
+    expect(positionHeading({ category: "Original usada", quality: "Original usada", model: "iPhone 11" })).toBe(
+      "Original usada para iPhone 11",
+    )
   })
 })

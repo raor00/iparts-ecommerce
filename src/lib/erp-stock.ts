@@ -117,5 +117,5 @@ export async function fetchErpTaxonomy(input: {
 
 export function availabilityLabel(item: Pick<ErpCatalogItem, "quantity" | "inStock">): string {
   if (!item.inStock || item.quantity <= 0) return "Sin stock"
-  return `${item.quantity} en stock`
+  return "En stock"
 }

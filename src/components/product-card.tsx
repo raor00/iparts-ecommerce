@@ -3,6 +3,10 @@ import { availabilityLabel } from "@/lib/erp-stock"
 import { selectOfferPrice } from "@/lib/vip-price"
 import type { ErpCatalogItem } from "@/lib/erp-stock"
 import { ProductPhoto } from "@/components/product-photo"
+import { ProductBuyBox } from "@/components/product-buy-box"
+import { partImageHint } from "@/lib/part-visual"
+import { productCopy } from "@/lib/product-copy"
+import { isPreviewSku } from "@/lib/preview-catalog"
 
 export function ProductCard({
   item,
@@ -14,25 +18,37 @@ export function ProductCard({
   href: string
 }) {
   const price = selectOfferPrice({ salePrice: item.salePrice, isVip })
+  const copy = productCopy(item)
   return (
-    <Link className="pcard" href={href}>
-      <div className="well">
-        <span className="badge">{item.category}</span>
-        <ProductPhoto category={item.qualityType || item.category} brand={item.brand} alt="" />
-      </div>
+    <article className="pcard">
+      <Link className="well" href={href}>
+        <ProductPhoto
+          category={partImageHint(item)}
+          brand={item.brand}
+          modelShort={copy.modelShort}
+          quality={copy.technology ?? copy.origin}
+          alt={copy.title}
+        />
+      </Link>
       <div className="meta">
-        <h3>{item.fullName}</h3>
-        <p className="sku-line">
-          SKU {item.sku}
-          {item.quality ? ` · ${item.quality}` : ""}
-          {item.brand ? ` · ${item.brand}` : ""}
-        </p>
+        <Link href={href}>
+          <h3>{copy.title}</h3>
+        </Link>
+        {copy.chips.length > 0 ? (
+          <p className="id-line">
+            {copy.chips.map((chip) => (
+              <span key={chip}>{chip}</span>
+            ))}
+          </p>
+        ) : null}
+        {!isPreviewSku(item.sku) ? <p className="sku-line">Código {item.sku}</p> : null}
         <div className="price-row">
           <span className="price">${price.unitPrice}</span>
           {price.compareAt ? <span className="was">${price.compareAt}</span> : null}
         </div>
         <span className={item.inStock ? "stock" : "stock out"}>{availabilityLabel(item)}</span>
+        <ProductBuyBox sku={item.sku} maxQty={99} disabled={!item.inStock} compact />
       </div>
-    </Link>
+    </article>
   )
 }

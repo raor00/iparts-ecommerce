@@ -30,7 +30,12 @@ export function decodeSession(token: string | undefined, secret: string): ShopSe
   try {
     const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as ShopSession
     if (!parsed.userId || !parsed.email) return null
-    return { userId: parsed.userId, email: parsed.email, isVip: Boolean(parsed.isVip) }
+    return {
+      userId: parsed.userId,
+      email: parsed.email,
+      isVip: Boolean(parsed.isVip),
+      ...(parsed.role === "DISPATCH" || parsed.role === "OWNER" ? { role: parsed.role } : { role: "CUSTOMER" }),
+    }
   } catch {
     return null
   }

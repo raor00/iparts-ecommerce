@@ -1,12 +1,13 @@
 import Link from "next/link"
-import { cartSubtotal } from "@/lib/cart"
-import { readSession, withDb } from "@/lib/http"
+import { cartCount, cartSubtotal } from "@/lib/cart"
+import { readSession, resolveCartActor, withDb } from "@/lib/http"
 import { getCart } from "@/lib/store"
 
 export async function Header() {
   const session = await readSession()
-  const cart = session ? withDb((db) => getCart(db, session.userId)) : { lines: [] }
-  const count = cart.lines.reduce((sum, line) => sum + line.quantity, 0)
+  const actor = await resolveCartActor()
+  const cart = actor.cartId ? withDb((db) => getCart(db, actor.cartId!)) : { lines: [] }
+  const count = cartCount(cart)
   const total = cartSubtotal(cart)
   return (
     <header className="mast">
@@ -28,10 +29,18 @@ export async function Header() {
                 <span>{session.isVip ? "Cuenta VIP" : "Mi cuenta"}</span>
                 <strong>{session.email.split("@")[0]}</strong>
               </Link>
-              <Link className="mast-link" href="/owner">
-                <span>Pasarela</span>
-                <strong>Wallet dueño</strong>
-              </Link>
+              {session.role === "OWNER" ? (
+                <Link className="mast-link" href="/owner">
+                  <span>Pasarela</span>
+                  <strong>Wallet dueño</strong>
+                </Link>
+              ) : null}
+              {session.role === "DISPATCH" || session.role === "OWNER" ? (
+                <Link className="mast-link" href="/dispatch">
+                  <span>Logística</span>
+                  <strong>Despacho</strong>
+                </Link>
+              ) : null}
               <form action="/api/auth/logout" method="post">
                 <button className="btn ghost" type="submit">
                   Salir

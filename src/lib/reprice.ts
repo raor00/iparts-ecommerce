@@ -1,6 +1,7 @@
 import { selectOfferPrice } from "./vip-price"
 import type { Cart, CartLine } from "./cart"
 import type { ErpCatalogItem } from "./erp-stock"
+import { productCopy } from "./product-copy"
 
 export function findCatalogItem(catalog: ErpCatalogItem[], sku: string): ErpCatalogItem | undefined {
   return catalog.find((item) => item.sku === sku)
@@ -19,7 +20,7 @@ export function pricedCartAdd(input: {
   const offer = selectOfferPrice({ salePrice: item.salePrice, isVip: input.isVip })
   return {
     sku: item.sku,
-    name: item.fullName,
+    name: productCopy(item).title,
     quantity: Math.max(1, Math.floor(input.quantity ?? 1)),
     unitPrice: offer.unitPrice,
   }

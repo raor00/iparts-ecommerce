@@ -5,5 +5,14 @@ export async function GET() {
   if (!session) return json({ user: null })
   const user = withDb((db) => db.users.find((u) => u.id === session.userId))
   if (!user) return json({ user: null })
-  return json({ user: { id: user.id, email: user.email, name: user.name, isVip: user.isVip } })
+  return json({
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      isVip: user.isVip,
+      role: user.role ?? "CUSTOMER",
+      profile: user.profile,
+    },
+  })
 }

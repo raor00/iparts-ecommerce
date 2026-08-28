@@ -3,7 +3,7 @@ import { readSession, withDb } from "@/lib/http"
 
 export default async function OwnerWalletPage() {
   const session = await readSession()
-  if (!session) redirect("/login?next=/owner")
+  if (!session || session.role !== "OWNER") redirect("/login?next=/owner")
   const wallet = withDb((db) => db.ownerWallet)
   return (
     <div>

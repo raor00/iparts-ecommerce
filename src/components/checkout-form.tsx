@@ -44,6 +44,7 @@ export function CheckoutForm({ amount }: { amount: string }) {
           return
         }
         router.push("/account")
+        router.refresh()
       }}
     >
       <fieldset className="pay-methods">
