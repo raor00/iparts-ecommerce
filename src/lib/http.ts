@@ -1,14 +1,44 @@
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
+import { auth, ensureAuthSchema } from "./auth"
+import type { ShopSession } from "./checkout-auth"
 import { shopConfig } from "./config"
 import { GUEST_COOKIE, guestCartId, guestCookie, newGuestId } from "./guest"
-import { decodeSession, sessionCookieName } from "./session"
-import { loadDb, saveDb, type Db } from "./store"
-import type { ShopSession } from "./checkout-auth"
+import { ensureShopUser, findUserByEmail, findUserById, loadDb, saveDb, type Db } from "./store"
 
 export async function readSession(): Promise<ShopSession | null> {
-  const cfg = shopConfig()
-  const jar = await cookies()
-  return decodeSession(jar.get(sessionCookieName())?.value, cfg.sessionSecret)
+  await ensureAuthSchema()
+  const ba = await auth.api.getSession({ headers: await headers() })
+  if (!ba?.user?.id || !ba.user.email) return null
+  const shop = withDb((db) => findUserById(db, ba.user.id) ?? findUserByEmail(db, ba.user.email))
+  const extra = ba.user as { role?: string; isVip?: boolean }
+  const roleRaw = extra.role ?? shop?.role ?? "CUSTOMER"
+  const role = roleRaw === "DISPATCH" || roleRaw === "OWNER" ? roleRaw : "CUSTOMER"
+  return {
+    userId: shop?.id ?? ba.user.id,
+    email: ba.user.email,
+    isVip: Boolean(extra.isVip ?? shop?.isVip),
+    role: shop?.role === "DISPATCH" || shop?.role === "OWNER" ? shop.role : role,
+  }
+}
+
+export async function syncSessionUser(input: {
+  id: string
+  email: string
+  name: string
+  isVip?: boolean
+  role?: ShopSession["role"]
+  profile?: Parameters<typeof ensureShopUser>[1]["profile"]
+}): Promise<void> {
+  withDb((db) =>
+    ensureShopUser(db, {
+      id: input.id,
+      email: input.email,
+      name: input.name,
+      isVip: input.isVip,
+      role: input.role,
+      profile: input.profile,
+    }),
+  )
 }
 
 export async function resolveCartActor(): Promise<{

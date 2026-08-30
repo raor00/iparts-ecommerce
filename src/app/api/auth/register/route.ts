@@ -1,10 +1,9 @@
+import { auth, cookiesFromHeaders, ensureAuthSchema } from "@/lib/auth"
 import { shopConfig } from "@/lib/config"
 import { clearGuestCookie } from "@/lib/guest"
 import { json, readGuestCartId, withDb } from "@/lib/http"
-import { hashPassword } from "@/lib/password"
 import { isProfileComplete, parseProfile } from "@/lib/profile"
-import { absorbGuestCart, createUser, findUserByEmail } from "@/lib/store"
-import { encodeSession, sessionCookie } from "@/lib/session"
+import { absorbGuestCart, ensureShopUser } from "@/lib/store"
 import { isVipEmail } from "@/lib/vip-account"
 
 export async function POST(req: Request) {
@@ -20,28 +19,35 @@ export async function POST(req: Request) {
     return json({ error: "Completá país, nombre, cédula, teléfono y dirección de envío" }, 400)
   }
   try {
-    const cfg = shopConfig()
+    await ensureAuthSchema()
+    const signed = await auth.api.signUpEmail({
+      body: { email, password, name: name || email },
+      headers: req.headers,
+      returnHeaders: true,
+    })
+    const user = signed.response.user
     const guestCartId = await readGuestCartId()
-    const user = withDb((db) => {
-      if (findUserByEmail(db, email)) throw new Error("Ese correo ya está registrado")
-      const created = createUser(db, {
-        email,
-        name,
-        passwordHash: hashPassword(password),
-        isVip: isVipEmail(email),
+    const shopUser = withDb((db) => {
+      const created = ensureShopUser(db, {
+        id: user.id,
+        email: user.email,
+        name: user.name || name,
+        isVip: isVipEmail(user.email),
         profile,
       })
       if (guestCartId) absorbGuestCart(db, guestCartId, created.id)
       return created
     })
-    const token = encodeSession(
-      { userId: user.id, email: user.email, isVip: user.isVip, role: user.role },
-      cfg.sessionSecret,
-    )
-    const cookies = [sessionCookie(token, cfg.secureCookies)]
-    if (guestCartId) cookies.push(clearGuestCookie(cfg.secureCookies))
+    const cookies = cookiesFromHeaders(signed.headers)
+    if (guestCartId) cookies.push(clearGuestCookie(shopConfig().secureCookies))
     return json(
-      { id: user.id, email: user.email, name: user.name, isVip: user.isVip, role: user.role },
+      {
+        id: shopUser.id,
+        email: shopUser.email,
+        name: shopUser.name,
+        isVip: shopUser.isVip,
+        role: shopUser.role,
+      },
       201,
       undefined,
       cookies,

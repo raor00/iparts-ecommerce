@@ -30,6 +30,8 @@ export type ShopOrder = {
   merchantNet?: string
   dispatchStatus?: "none" | "ready_to_pack" | "packed" | "shipped"
   shippingSnapshot?: CustomerProfile
+  paymentProof?: string
+  processorPaymentId?: string
   lines: { sku: string; name: string; quantity: number; unitPrice: string }[]
 }
 
@@ -41,6 +43,18 @@ export type OwnerLedgerEntry = {
   note: string
 }
 
+export type ShopProduct = {
+  sku: string
+  categorySlug: "pantallas" | "baterias"
+  model: string
+  brand: string
+  quality: string
+  wholesalePrice: number
+  quantity: number
+  active: boolean
+  createdAt: string
+}
+
 export type Db = {
   users: ShopUser[]
   carts: Record<string, Cart>
@@ -48,6 +62,7 @@ export type Db = {
   ownerWallet: { balance: string; entries: OwnerLedgerEntry[] }
   stock: Record<string, number>
   movements: StockMovement[]
+  products: ShopProduct[]
 }
 
 function defaultDb(): Db {
@@ -58,6 +73,7 @@ function defaultDb(): Db {
     ownerWallet: { balance: "0.00", entries: [] },
     stock: {},
     movements: [],
+    products: [],
   }
 }
 
@@ -84,6 +100,7 @@ export function loadDb(path: string): Db {
           : { balance: "0.00", entries: [] },
       stock: parsed.stock && typeof parsed.stock === "object" ? parsed.stock : {},
       movements: Array.isArray(parsed.movements) ? parsed.movements : [],
+      products: Array.isArray(parsed.products) ? parsed.products : [],
     }
   } catch {
     return defaultDb()
@@ -100,9 +117,10 @@ export function saveDb(path: string, db: Db): void {
 export function createUser(
   db: Db,
   input: {
+    id?: string
     email: string
     name: string
-    passwordHash: string
+    passwordHash?: string
     isVip?: boolean
     role?: ShopRole
     profile?: CustomerProfile
@@ -113,10 +131,10 @@ export function createUser(
   const profile = input.profile ?? emptyProfile()
   const first = profile.firstName || input.name.trim()
   const user: ShopUser = {
-    id: randomUUID(),
+    id: input.id ?? randomUUID(),
     email,
     name: first || email,
-    passwordHash: input.passwordHash,
+    passwordHash: input.passwordHash ?? "",
     isVip: Boolean(input.isVip),
     role: input.role ?? "CUSTOMER",
     profile,
@@ -124,6 +142,55 @@ export function createUser(
   }
   db.users.push(user)
   return user
+}
+
+export function ensureShopUser(
+  db: Db,
+  input: {
+    id: string
+    email: string
+    name: string
+    isVip?: boolean
+    role?: ShopRole
+    profile?: CustomerProfile
+  },
+): ShopUser {
+  const email = input.email.trim().toLowerCase()
+  const byId = findUserById(db, input.id)
+  if (byId) {
+    if (input.profile) byId.profile = input.profile
+    if (input.isVip != null) byId.isVip = input.isVip
+    return byId
+  }
+  const byEmail = findUserByEmail(db, email)
+  if (byEmail) {
+    rekeyUserId(db, byEmail.id, input.id)
+    const moved = findUserById(db, input.id)!
+    if (input.profile) moved.profile = input.profile
+    if (input.isVip != null) moved.isVip = input.isVip
+    moved.name = input.name || moved.name
+    return moved
+  }
+  return createUser(db, {
+    id: input.id,
+    email,
+    name: input.name,
+    isVip: input.isVip,
+    role: input.role,
+    profile: input.profile,
+  })
+}
+
+export function rekeyUserId(db: Db, fromId: string, toId: string): void {
+  if (fromId === toId) return
+  const user = findUserById(db, fromId)
+  if (!user) return
+  user.id = toId
+  db.carts[toId] = mergeCarts(getCart(db, toId), getCart(db, fromId))
+  delete db.carts[fromId]
+  for (const order of db.orders) {
+    if (order.userId === fromId) order.userId = toId
+  }
 }
 
 export function findUserById(db: Db, id: string): ShopUser | undefined {
@@ -169,7 +236,14 @@ export function decrementSale(db: Db, lines: { sku: string; quantity: number }[]
 }
 
 export function paidOrdersForDispatch(db: Db): ShopOrder[] {
-  return db.orders.filter((o) => o.status === "paid" || o.status === "ready_to_pack" || o.dispatchStatus === "ready_to_pack")
+  return db.orders.filter(
+    (o) =>
+      o.status === "awaiting_payment" ||
+      o.status === "paid" ||
+      o.status === "ready_to_pack" ||
+      o.dispatchStatus === "ready_to_pack" ||
+      o.dispatchStatus === "packed",
+  )
 }
 
 export function setDispatchStatus(db: Db, orderId: string, dispatchStatus: "packed" | "shipped"): ShopOrder {

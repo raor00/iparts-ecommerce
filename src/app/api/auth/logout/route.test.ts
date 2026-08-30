@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest"
-import { POST } from "./route"
+import { describe, expect, it, vi } from "vitest"
+
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers(),
+  cookies: async () => ({ get: () => undefined }),
+}))
+
+const { POST } = await import("./route")
 
 describe("POST /api/auth/logout", () => {
   it("redirects to / after clearing the session cookie", async () => {
@@ -7,9 +13,8 @@ describe("POST /api/auth/logout", () => {
     expect(res.status).toBe(303)
     expect(res.headers.get("location")).toBe("http://shop.local/")
     const cookie = res.headers.get("set-cookie") ?? ""
-    expect(cookie).toContain("iparts_shop_session=")
-    expect(cookie).toContain("Max-Age=0")
-    expect(cookie).toContain("HttpOnly")
+    expect(cookie.toLowerCase()).toContain("httponly")
+    expect(cookie).toMatch(/Max-Age=0|max-age=0/i)
     const body = await res.text()
     expect(body).not.toContain('"ok"')
   })
