@@ -7,7 +7,7 @@ import {
 } from "./catalog"
 import type { ErpCatalogItem } from "./erp-stock"
 
-const PREVIEW_WHOLESALE: Record<(typeof PART_CATEGORIES)[number]["slug"], string> = {
+const PREVIEW_WHOLESALE: Record<string, string> = {
   pantallas: "185.00",
   baterias: "28.00",
   tapas: "96.00",
@@ -43,7 +43,7 @@ export function previewWholesalePrice(input: {
   return PREVIEW_OFFER[key] ?? PREVIEW_WHOLESALE[input.categorySlug as keyof typeof PREVIEW_WHOLESALE] ?? "0.00"
 }
 
-const PREVIEW_VARIANTS: Record<(typeof PART_CATEGORIES)[number]["slug"], { quality: string; brand: string }[]> = {
+const PREVIEW_VARIANTS: Record<string, { quality: string; brand: string }[]> = {
   pantallas: [
     { quality: "OLED", brand: "JK" },
     { quality: "Incell", brand: "GX" },
@@ -90,13 +90,13 @@ export function previewCatalog(model?: string): ErpCatalogItem[] {
           qualityType: variant.quality,
           color: null,
           models: [phone],
-          quantity: cat.slug === "sensores" ? 0 : 6,
+          quantity: 6,
           salePrice: previewWholesalePrice({
             categorySlug: cat.slug,
             quality: variant.quality,
             brand: variant.brand,
           }),
-          inStock: cat.slug !== "sensores",
+          inStock: true,
         })
       }
     }

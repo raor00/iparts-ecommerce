@@ -36,13 +36,6 @@ export type ShopIphoneModel = (typeof SHOP_IPHONE_MODELS)[number]
 export const PART_CATEGORIES = [
   { slug: "pantallas", name: "Pantallas" },
   { slug: "baterias", name: "Baterías" },
-  { slug: "tapas", name: "Tapas / Housing" },
-  { slug: "camaras", name: "Cámaras" },
-  { slug: "flex-carga", name: "Flex de carga" },
-  { slug: "altavoces", name: "Altavoces" },
-  { slug: "sensores", name: "Sensores" },
-  { slug: "botones", name: "Botones" },
-  { slug: "original-usada", name: "Original usada" },
 ] as const
 
 export const ORIGINAL_USADA_MODELS = ["iPhone 11", "iPhone 11 Pro", "iPhone 11 Pro Max"] as const

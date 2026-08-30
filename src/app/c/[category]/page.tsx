@@ -19,13 +19,13 @@ export default async function CategoryPage({
   const cat = PART_CATEGORIES.find((row) => row.slug === category)
   if (!cat) notFound()
   const session = await readSession()
-  const model = filters.model ?? (cat.slug === "original-usada" ? "iPhone 11" : undefined)
-  const quality = filters.quality ?? (cat.slug === "original-usada" ? "Original usada" : undefined)
+  const model = filters.model
+  const quality = filters.quality
   const loaded = await loadShopCatalog({
     category: cat.slug,
     model,
     brand: filters.brand,
-    quality: cat.slug === "original-usada" ? quality : filters.quality,
+    quality,
   })
   const pos = {
     category: cat.name,
@@ -74,7 +74,7 @@ export default async function CategoryPage({
             />
           ))}
         </div>
-        {loaded.items.length === 0 && <p className="muted">No hay SKUs en esta posición del catálogo.</p>}
+        {loaded.items.length === 0 && <p className="muted">No hay unidades disponibles para esta selección.</p>}
       </div>
     </div>
   )

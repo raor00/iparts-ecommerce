@@ -10,8 +10,8 @@ export default function HomePage() {
           <p className="kicker">iParts Ecommerce</p>
           <h1>Repuestos iPhone, del catálogo al pedido.</h1>
           <p>
-            Creá tu cuenta de cliente, guardá tus datos de envío y comprá pantallas, baterías, tapas y flex
-            desde iPhone XR hasta 17 Pro Max.
+            Creá tu cuenta de cliente, guardá tus datos de envío y comprá pantallas y baterías desde iPhone XR hasta 17
+            Pro Max.
           </p>
           <div className="auth-ctas">
             <Link className="btn" href="/register">

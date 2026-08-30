@@ -27,5 +27,6 @@ describe("public catalog", () => {
       max: 5,
       error: "Solo puedes pedir hasta 5 unidades",
     })
+    expect(qtyCapError(0)).toEqual({ code: "QTY_CAP", max: 0, error: "Sin stock" })
   })
 })

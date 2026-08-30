@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  PART_CATEGORIES,
   SHOP_IPHONE_MODELS,
   isShopIphoneModel,
   modelFromSlug,
@@ -18,6 +19,10 @@ describe("shop iPhone catalog", () => {
     expect(isShopIphoneModel("iPhone SE (2nd Gen)")).toBe(false)
     const series = modelsBySeries().map((g) => g.series)
     expect(series).toEqual(expect.arrayContaining(["XR", "11", "12", "13", "14", "15", "16", "16e", "17"]))
+  })
+
+  it("exposes only pantallas and baterías as shop part categories", () => {
+    expect(PART_CATEGORIES.map((row) => row.slug)).toEqual(["pantallas", "baterias"])
   })
 
   it("round-trips model slugs used in catalog routes", () => {

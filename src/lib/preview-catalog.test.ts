@@ -6,7 +6,7 @@ import { selectOfferPrice } from "./vip-price"
 describe("preview merchandising catalog", () => {
   it("builds one row per category for a shop model", () => {
     const rows = previewCatalog("iPhone 16 Pro Max")
-    expect(rows.length).toBeGreaterThanOrEqual(8)
+    expect(rows.length).toBeGreaterThanOrEqual(5)
     expect(rows.every((row) => row.models.includes("iPhone 16 Pro Max"))).toBe(true)
     expect(rows.some((row) => row.category.toLowerCase().includes("pantalla"))).toBe(true)
     expect(categorySlugFromName("Pantallas")).toBe("pantallas")

@@ -35,8 +35,8 @@ export async function Header() {
               </Link>
               {session.role === "OWNER" ? (
                 <Link className="mast-link" href="/owner">
-                  <span>Pasarela</span>
-                  <strong>Wallet dueño</strong>
+                  <span>Administrador</span>
+                  <strong>Catálogo y wallet</strong>
                 </Link>
               ) : null}
               {session.role === "DISPATCH" || session.role === "OWNER" ? (
