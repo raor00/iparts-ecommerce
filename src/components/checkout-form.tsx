@@ -9,6 +9,7 @@ export function CheckoutForm({ amount }: { amount: string }) {
   const [method, setMethod] = useState<PaymentMethodId>("binance_pay")
   const [token, setToken] = useState("")
   const [zelleReference, setZelleReference] = useState("")
+  const [zelleReceipt, setZelleReceipt] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const router = useRouter()
@@ -31,7 +32,7 @@ export function CheckoutForm({ amount }: { amount: string }) {
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ method, token, zelleReference }),
+          body: JSON.stringify({ method, token, zelleReference, zelleReceipt }),
         })
         const data = (await res.json()) as { error?: string; order?: { id: string } }
         setBusy(false)
@@ -86,10 +87,22 @@ export function CheckoutForm({ amount }: { amount: string }) {
       )}
       <p className="muted">{selected.notes}</p>
       {method === "zelle" ? (
-        <label>
-          Referencia Zelle
-          <input value={zelleReference} onChange={(e) => setZelleReference(e.target.value)} placeholder="Nombre o ID del envío" required />
-        </label>
+        <>
+          <label>
+            Referencia Zelle
+            <input value={zelleReference} onChange={(e) => setZelleReference(e.target.value)} placeholder="Nombre o ID del envío" required />
+          </label>
+          <label>
+            Comprobante (texto o captura en base64)
+            <input
+              value={zelleReceipt}
+              onChange={(e) => setZelleReceipt(e.target.value)}
+              placeholder="ID de captura o data:image/..."
+              required
+              minLength={8}
+            />
+          </label>
+        </>
       ) : (
         <label>
           ID de intención (hasta conectar API keys)

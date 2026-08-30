@@ -39,6 +39,7 @@ export default async function AccountPage() {
               <p className="muted">
                 {order.status} · ${order.total}
                 {order.paymentMethod ? ` · ${order.paymentMethod}` : ""}
+                {order.paymentProof ? " · comprobante adjunto" : ""}
               </p>
               {order.shippingSnapshot ? (
                 <p className="muted">

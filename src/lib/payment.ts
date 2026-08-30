@@ -6,6 +6,7 @@ export type PaymentRequest = {
   method: PaymentMethodId
   token?: string
   zelleReference?: string
+  zelleReceipt?: string
 }
 
 export type PaymentResult =
@@ -14,8 +15,8 @@ export type PaymentResult =
   | { ok: false; error: string }
 
 /**
- * Routes a charge. Does not call Binance/Zelle until merchant keys exist.
- * Binance/NOWPayments stay as recorded intents. Zelle is always manual confirm.
+ * Records a charge intent. Never marks crypto paid from a client token.
+ * Settlement is HMAC webhook or staff confirmManualPayment only.
  */
 export function processPayment(req: PaymentRequest): PaymentResult {
   const method = paymentMethodById(req.method)
@@ -32,7 +33,9 @@ export function processPayment(req: PaymentRequest): PaymentResult {
 
   if (method.id === "zelle") {
     const ref = (req.zelleReference ?? "").trim()
+    const proof = (req.zelleReceipt ?? "").trim()
     if (ref.length < 4) return { ok: false, error: "Indicá la referencia Zelle (mín. 4 caracteres)" }
+    if (proof.length < 8) return { ok: false, error: "Adjuntá el comprobante Zelle" }
     return { ok: true, status: "awaiting_payment", reference: `zelle_${ref}`, split }
   }
 
@@ -43,7 +46,7 @@ export function processPayment(req: PaymentRequest): PaymentResult {
     }
     return {
       ok: true,
-      status: "paid",
+      status: "awaiting_payment",
       reference: `${method.id}_${Buffer.from(`${token}:${req.amount}`).toString("base64url").slice(0, 16)}`,
       split,
     }

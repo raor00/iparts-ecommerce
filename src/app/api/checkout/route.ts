@@ -6,7 +6,8 @@ import { processPayment } from "@/lib/payment"
 import { paymentMethodById, type PaymentMethodId } from "@/lib/payment-methods"
 import { isProfileComplete, profileCompleteError } from "@/lib/profile"
 import { repriceCart } from "@/lib/reprice"
-import { addOrder, creditOwnerWallet, decrementSale, findUserById, getCart, putCart } from "@/lib/store"
+import { applyPaidSettlement } from "@/lib/order-flow"
+import { addOrder, findUserById, getCart, putCart } from "@/lib/store"
 
 export async function POST(req: Request) {
   const session = await readSession()
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
     token?: string
     method?: PaymentMethodId
     zelleReference?: string
+    zelleReceipt?: string
   }
   const method = paymentMethodById(body.method ?? "")
   if (!method) return json({ error: "Elegí un método de pago" }, 400)
@@ -34,6 +36,7 @@ export async function POST(req: Request) {
     method: method.id,
     token: body.token,
     zelleReference: body.zelleReference,
+    zelleReceipt: body.zelleReceipt,
   })
   if (!pay.ok) return json({ error: pay.error }, 402)
   try {
@@ -49,16 +52,10 @@ export async function POST(req: Request) {
         merchantNet: pay.split.merchantNet,
         dispatchStatus: pay.status === "paid" ? "ready_to_pack" : "none",
         shippingSnapshot: profile,
+        paymentProof: method.id === "zelle" ? body.zelleReceipt?.trim() : undefined,
         lines: cart.lines,
       })
-      if (pay.status === "paid") {
-        decrementSale(db, cart.lines, created.id, session!.userId)
-        creditOwnerWallet(db, {
-          orderId: created.id,
-          amount: pay.split.ownerFee,
-          note: `Pasarela ${method.id} ${pay.split.ownerBps / 100}%`,
-        })
-      }
+      if (pay.status === "paid") applyPaidSettlement(db, created)
       putCart(db, session!.userId, emptyCart())
       return created
     })

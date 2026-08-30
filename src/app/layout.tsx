@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import localFont from "next/font/local"
 import { Header } from "@/components/header"
 import { CategoryBar } from "@/components/category-bar"
+import { Clarity } from "@/components/clarity"
 import "./globals.css"
 
 const generalSans = localFont({
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={generalSans.variable}>
       <body className={generalSans.className}>
+        <Clarity />
         <Header />
         <CategoryBar />
         <main className="page">

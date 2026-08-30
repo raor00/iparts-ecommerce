@@ -8,10 +8,17 @@ describe("processPayment", () => {
     const paid = processPayment({ amount: "12.00", method: "binance_pay", token: "intent_demo" })
     expect(paid.ok).toBe(true)
     if (paid.ok) {
-      expect(paid.status).toBe("paid")
+      expect(paid.status).toBe("awaiting_payment")
       expect(paid.split.ownerFee).not.toBe("0.00")
     }
-    const zelle = processPayment({ amount: "50.00", method: "zelle", zelleReference: "ANA-9921" })
+    const zelleBare = processPayment({ amount: "50.00", method: "zelle", zelleReference: "ANA-9921" })
+    expect(zelleBare.ok).toBe(false)
+    const zelle = processPayment({
+      amount: "50.00",
+      method: "zelle",
+      zelleReference: "ANA-9921",
+      zelleReceipt: "data:image/png;base64,xxxx",
+    })
     expect(zelle.ok).toBe(true)
     if (zelle.ok) expect(zelle.status).toBe("awaiting_payment")
     const card = processPayment({ amount: "20.00", method: "card_intl", token: "x" })

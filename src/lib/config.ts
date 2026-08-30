@@ -7,5 +7,6 @@ export function shopConfig() {
     sessionSecret: process.env.SESSION_SECRET ?? "",
     dataPath: process.env.SHOP_DATA_PATH ?? join(process.cwd(), "data", "store.json"),
     secureCookies: process.env.NODE_ENV === "production",
+    clarityId: process.env.NEXT_PUBLIC_CLARITY_ID ?? "",
   }
 }

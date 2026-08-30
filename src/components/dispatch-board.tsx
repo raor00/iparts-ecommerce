@@ -8,13 +8,13 @@ export function DispatchBoard({ orders }: { orders: ShopOrder[] }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState("")
   const router = useRouter()
-  async function mark(orderId: string, status: "packed" | "shipped") {
+  async function post(orderId: string, body: { status?: "packed" | "shipped"; action?: "confirm_payment" }) {
     setBusy(orderId)
     setError("")
     const res = await fetch("/api/dispatch", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ orderId, status }),
+      body: JSON.stringify({ orderId, ...body }),
     })
     const data = (await res.json()) as { error?: string }
     setBusy(null)
@@ -54,15 +54,21 @@ export function DispatchBoard({ orders }: { orders: ShopOrder[] }) {
             </ul>
             <p>
               Total <strong>${order.total}</strong>
+              {order.paymentProof ? " · Comprobante adjunto" : ""}
             </p>
             <div className="mast-actions">
-              {order.dispatchStatus !== "packed" && order.dispatchStatus !== "shipped" ? (
-                <button className="btn" type="button" disabled={busy === order.id} onClick={() => void mark(order.id, "packed")}>
+              {order.status === "awaiting_payment" ? (
+                <button className="btn" type="button" disabled={busy === order.id} onClick={() => void post(order.id, { action: "confirm_payment" })}>
+                  Confirmar cobro
+                </button>
+              ) : null}
+              {order.status !== "awaiting_payment" && order.dispatchStatus !== "packed" && order.dispatchStatus !== "shipped" ? (
+                <button className="btn" type="button" disabled={busy === order.id} onClick={() => void post(order.id, { status: "packed" })}>
                   Marcar armado
                 </button>
               ) : null}
               {order.dispatchStatus === "packed" ? (
-                <button className="btn" type="button" disabled={busy === order.id} onClick={() => void mark(order.id, "shipped")}>
+                <button className="btn" type="button" disabled={busy === order.id} onClick={() => void post(order.id, { status: "shipped" })}>
                   Marcar enviado
                 </button>
               ) : null}
