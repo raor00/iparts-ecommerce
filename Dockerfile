@@ -11,6 +11,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV BETTER_AUTH_SECRET=build-placeholder-secret-min-32-chars
+ENV BETTER_AUTH_DB=/tmp/auth-build.sqlite
 RUN pnpm build
 
 FROM node:24-bookworm-slim AS runner

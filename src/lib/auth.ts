@@ -16,10 +16,18 @@ function openAuthDb(): DatabaseSync {
   return new DatabaseSync(path)
 }
 
-const secret =
-  process.env.BETTER_AUTH_SECRET ||
-  process.env.SESSION_SECRET ||
-  "dev-better-auth-secret-min-32-chars!!"
+function authSecret(): string {
+  const configured = process.env.BETTER_AUTH_SECRET || process.env.SESSION_SECRET
+  if (configured) return configured
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("BETTER_AUTH_SECRET is required in production")
+  }
+  return "dev-better-auth-secret-min-32-chars!!"
+}
+
+const secret = authSecret()
+
+const appOrigin = process.env.BETTER_AUTH_URL?.trim()
 
 export const auth = betterAuth({
   secret,
@@ -45,6 +53,7 @@ export const auth = betterAuth({
     "http://127.0.0.1:3100",
     "http://127.0.0.1:3101",
     "http://shop.local",
+    ...(appOrigin ? [appOrigin] : []),
   ],
   databaseHooks: {
     user: {
@@ -73,10 +82,22 @@ export function sessionCookieIsHttpOnly(setCookie: string): boolean {
 }
 
 let migrated = false
+let migrating: Promise<void> | null = null
 
 export async function ensureAuthSchema(): Promise<void> {
+  if (process.env.NEXT_PHASE === "phase-production-build") return
   if (migrated) return
-  const { runMigrations } = await getMigrations(auth.options)
-  await runMigrations()
-  migrated = true
+  if (!migrating) {
+    migrating = (async () => {
+      const { runMigrations } = await getMigrations(auth.options)
+      try {
+        await runMigrations()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        if (!/already exists/i.test(msg)) throw err
+      }
+      migrated = true
+    })()
+  }
+  await migrating
 }
