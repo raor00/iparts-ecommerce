@@ -1,0 +1,27 @@
+services:
+  shop:
+    build: .
+    ports:
+      - "3100:3100"
+    environment:
+      NODE_ENV: production
+      PORT: "3100"
+      HOSTNAME: 0.0.0.0
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env (32+ random chars)}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3100}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env (32+ random chars)}
+      SHOP_DATA_PATH: /app/data/store.json
+      BETTER_AUTH_DB: /app/data/auth.sqlite
+      NEXT_PUBLIC_CLARITY_ID: ${NEXT_PUBLIC_CLARITY_ID:-}
+      ERP_API_URL: ${ERP_API_URL:-}
+      ECOMMERCE_API_KEY: ${ECOMMERCE_API_KEY:-}
+      BINANCE_PAY_API_KEY: ${BINANCE_PAY_API_KEY:-}
+      BINANCE_PAY_API_SECRET: ${BINANCE_PAY_API_SECRET:-}
+      NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET:-}
+      PAYMENTS_WEBHOOK_SECRET: ${PAYMENTS_WEBHOOK_SECRET:-}
+    volumes:
+      - shop-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  shop-data:

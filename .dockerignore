@@ -1,0 +1,10 @@
+node_modules
+.next
+data
+.git
+.env
+.env.local
+*.tsbuildinfo
+.codegraph
+.atl
+*.md
