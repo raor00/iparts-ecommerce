@@ -26,11 +26,13 @@ ENV BETTER_AUTH_DB=/app/data/auth.sqlite
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 --ingroup nodejs nextjs \
   && mkdir -p /app/data
-# pnpm workspace root nests the standalone output under .next/standalone/<package-name>
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/iparts-ecommerce ./
+COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-RUN chown -R nextjs:nodejs /app/data
+COPY --from=builder /app/.next/static ./.next/static
+RUN if [ ! -f /app/server.js ] && [ -f /app/iparts-ecommerce/server.js ]; then \
+      cp -a /app/iparts-ecommerce/. /app/ && rm -rf /app/iparts-ecommerce; \
+    fi \
+  && chown -R nextjs:nodejs /app
 USER nextjs
 EXPOSE 3100
 VOLUME ["/app/data"]
